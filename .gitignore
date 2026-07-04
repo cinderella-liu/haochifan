@@ -1,0 +1,7 @@
+keystore/
+*.jks
+output/
+twa-manifest.json
+.gradle/
+build/
+local.properties

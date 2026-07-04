@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0f1923">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="好好吃饭">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<title>好好吃饭</title>
+<style>
+/* ============ 像素复古全局 ============ */
+:root{
+  --bg:#0f1923; --bg2:#162133; --bg3:#1a2a3a;
+  --border:#3a506b; --border2:#2a4055;
+  --txt:#e0e0e0; --dim:#6b8299; --faint:#4a5a6a;
+  /* 决策=绿 */
+  --g1:#0f4a2a; --g2:#1a6b3a; --g3:#34d399; --g-glow:rgba(52,211,153,.4);
+  /* 记录=橙 */
+  --o1:#4a2a0f; --o2:#6b3a1a; --o3:#fb923c; --o-glow:rgba(251,146,60,.4);
+  /* 强调 */
+  --warm:#fbbf24; --warm2:#f59e0b;
+  /* 状态 */
+  --done:#4a5a6a;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow-x:hidden;}
+body{
+  font-family:'Press Start 2P','Courier New','PingFang SC','Microsoft YaHei',monospace;
+  background:var(--bg);color:var(--txt);
+  -webkit-font-smoothing:none;text-rendering:optimizeSpeed;
+  image-rendering:pixelated;font-size:12px;line-height:1.6;
+}
+/* 扫描线 */
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.12) 2px,rgba(0,0,0,.12) 4px);
+}
+/* 噪点 */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;opacity:.03;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.app{max-width:480px;margin:0 auto;min-height:100vh;position:relative;z-index:1;}
+
+/* ============ 页面 ============ */
+.page{display:none;min-height:100vh;flex-direction:column;}
+.page.active{display:flex;animation:pageIn .2s steps(2);}
+@keyframes pageIn{from{opacity:0;}to{opacity:1;}}
+
+/* ============ 顶栏 ============ */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:max(10px,env(safe-area-inset-top)) 12px 8px;
+  border-bottom:2px solid var(--border);background:rgba(15,25,35,.95);
+}
+.topbar .back{
+  width:32px;height:32px;border:2px solid var(--border);
+  background:var(--bg2);color:var(--txt);font-size:16px;
+  display:grid;place-items:center;cursor:pointer;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.3),inset 2px 2px 0 rgba(255,255,255,.06);
+}
+.topbar .back:active{transform:translate(1px,1px);}
+.topbar .title{font-size:10px;text-align:center;letter-spacing:1px;}
+.topbar .title small{display:block;font-size:7px;color:var(--dim);margin-top:3px;font-weight:normal;}
+.topbar .spacer{width:32px;}
+
+/* ============ 首页 ============ */
+#page-home{padding:16px;}
+.home-header{text-align:center;padding:10px 0 20px;}
+.home-title{font-size:14px;color:var(--warm);letter-spacing:3px;text-shadow:2px 2px 0 #8b6914;margin-bottom:6px;}
+.home-sub{font-size:7px;color:var(--dim);}
+.home-sub .blink{animation:blink 1s steps(2) infinite;}
+@keyframes blink{50%{opacity:0;}}
+
+/* 状态栏 */
+.status-box{
+  border:2px solid var(--border);background:var(--bg2);padding:12px;
+  margin-bottom:20px;text-align:center;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.2),inset 2px 2px 0 rgba(255,255,255,.03);
+}
+.status-box .phase{font-size:8px;margin-bottom:6px;}
+.status-box .phase .arrow{color:var(--warm);}
+.status-box .msg{font-size:7px;color:var(--dim);line-height:1.8;}
+.status-box .msg b{color:var(--g3);}
+.status-box .msg b.o{color:var(--o3);}
+
+/* 双按钮 */
+.dual-btns{display:flex;gap:12px;margin-bottom:12px;}
+.pbtn{
+  flex:1;padding:20px 10px;border:3px solid;cursor:pointer;
+  text-align:center;position:relative;transition:transform .08s;
+  box-shadow:inset -3px -3px 0 rgba(0,0,0,.25),inset 3px 3px 0 rgba(255,255,255,.08),4px 4px 0 rgba(0,0,0,.4);
+  background:var(--bg2);
+}
+.pbtn:active{transform:translate(2px,2px);box-shadow:inset -3px -3px 0 rgba(0,0,0,.25),inset 3px 3px 0 rgba(255,255,255,.08),2px 2px 0 rgba(0,0,0,.4);}
+.pbtn .ic{font-size:28px;margin-bottom:8px;line-height:1;}
+.pbtn .lbl{font-size:9px;margin-bottom:4px;letter-spacing:1px;}
+.pbtn .dsc{font-size:6px;opacity:.6;line-height:1.4;}
+.pbtn .check{position:absolute;top:4px;right:4px;font-size:14px;display:none;}
+
+.pbtn-green{border-color:var(--g3);color:var(--g3);background:var(--g1);text-shadow:1px 1px 0 #0a2a1a;}
+.pbtn-green.active{animation:pulseGreen 1.2s steps(2) infinite;}
+@keyframes pulseGreen{50%{box-shadow:inset -3px -3px 0 rgba(0,0,0,.25),inset 3px 3px 0 rgba(255,255,255,.08),4px 4px 0 var(--g-glow);}}
+.pbtn-green.done{border-color:var(--done);color:var(--done);background:var(--bg3);}
+.pbtn-green.done .check{display:block;color:var(--g3);}
+
+.pbtn-orange{border-color:var(--o3);color:var(--o3);background:var(--o1);text-shadow:1px 1px 0 #2a1a0a;}
+.pbtn-orange.active{animation:pulseOrange 1.2s steps(2) infinite;}
+@keyframes pulseOrange{50%{box-shadow:inset -3px -3px 0 rgba(0,0,0,.25),inset 3px 3px 0 rgba(255,255,255,.08),4px 4px 0 var(--o-glow);}}
+.pbtn-orange.disabled{border-color:var(--border2);color:var(--faint);background:var(--bg3);}
+.pbtn-orange.done{border-color:var(--done);color:var(--done);background:var(--bg3);}
+.pbtn-orange.done .check{display:block;color:var(--o3);}
+
+.pbtn-gray{border-color:var(--border);color:var(--dim);background:var(--bg2);margin-bottom:16px;}
+.pbtn-gray:active{transform:translate(2px,2px);}
+
+/* 统计 */
+.stats-row{display:flex;gap:8px;margin-bottom:16px;}
+.stat-box{
+  flex:1;border:2px solid var(--border);background:var(--bg2);padding:10px 6px;
+  text-align:center;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.stat-box .num{font-size:16px;font-weight:bold;}
+.stat-box .num.g{color:var(--g3);}
+.stat-box .num.o{color:var(--o3);}
+.stat-box .lbl{font-size:6px;color:var(--dim);margin-top:4px;}
+
+/* 进度条 */
+.pixel-bar{height:8px;background:var(--bg3);border:2px solid var(--border);margin:8px 0 4px;overflow:hidden;}
+.pixel-bar-fill{height:100%;background:repeating-linear-gradient(90deg,var(--g3),var(--g3) 4px,var(--g2) 4px,var(--g2) 8px);transition:width .3s steps(8);}
+
+/* ============ 决策页 ============ */
+#page-decide{padding:0 12px 20px;}
+.decide-head{text-align:center;padding:12px 0 16px;}
+.decide-time{
+  display:inline-block;border:2px solid var(--border);background:var(--bg2);
+  padding:6px 12px;font-size:8px;color:var(--dim);
+}
+.decide-time b{color:var(--warm);}
+.decide-h{font-size:12px;margin:14px 0 6px;}
+.decide-sub{font-size:7px;color:var(--dim);margin-bottom:16px;}
+
+.decide-count{
+  border:2px solid var(--border);background:var(--bg2);padding:8px 12px;
+  margin-bottom:16px;font-size:7px;color:var(--dim);text-align:center;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.decide-count b{color:var(--warm);font-size:9px;}
+
+.cards{display:flex;gap:10px;}
+.pcard{
+  flex:1;border:3px solid;padding:16px 10px;cursor:pointer;
+  text-align:center;transition:transform .08s;
+  box-shadow:inset -3px -3px 0 rgba(0,0,0,.25),inset 3px 3px 0 rgba(255,255,255,.06),3px 3px 0 rgba(0,0,0,.4);
+}
+.pcard:active{transform:translate(2px,2px);}
+.pcard .emoji{font-size:32px;margin-bottom:10px;line-height:1;}
+.pcard .tag{font-size:6px;letter-spacing:2px;margin-bottom:8px;padding:3px 8px;display:inline-block;border:1px solid;}
+.pcard .name{font-size:10px;margin-bottom:10px;}
+.pcard .foods{text-align:left;margin-bottom:12px;}
+.pcard .food-item{font-size:7px;padding:5px 6px;border:1px solid;margin-bottom:3px;display:flex;align-items:center;gap:5px;}
+.pcard .food-item .dot{width:4px;height:4px;flex-shrink:0;}
+.pcard .cta{width:100%;padding:8px;border:2px solid;font-size:7px;cursor:pointer;font-family:inherit;}
+
+.pcard-health{border-color:var(--g3);background:var(--g1);color:var(--g3);}
+.pcard-health .tag{border-color:var(--g3);}
+.pcard-health .food-item{border-color:var(--g2);color:var(--txt);}
+.pcard-health .food-item .dot{background:var(--g3);}
+.pcard-health .cta{border-color:var(--g3);background:var(--g2);color:var(--g3);}
+
+.pcard-joy{border-color:var(--o3);background:var(--o1);color:var(--o3);}
+.pcard-joy .tag{border-color:var(--o3);}
+.pcard-joy .food-item{border-color:var(--o2);color:var(--txt);}
+.pcard-joy .food-item .dot{background:var(--o3);}
+.pcard-joy .cta{border-color:var(--o3);background:var(--o2);color:var(--o3);}
+
+.foodlib-entry{
+  margin-top:14px;border:2px solid var(--border);background:var(--bg2);
+  padding:12px;display:flex;align-items:center;gap:10px;cursor:pointer;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.foodlib-entry:active{transform:translate(1px,1px);}
+.foodlib-entry .ic{font-size:20px;}
+.foodlib-entry .txt{flex:1;}
+.foodlib-entry .txt .t{font-size:8px;}
+.foodlib-entry .txt .s{font-size:6px;color:var(--dim);margin-top:2px;}
+.foodlib-entry .arrow{color:var(--dim);font-size:12px;}
+
+/* ============ 决策成功 ============ */
+#page-decide-done{justify-content:center;align-items:center;text-align:center;padding:30px;}
+.done-icon{font-size:48px;margin-bottom:20px;animation:popIn .2s steps(3);}
+@keyframes popIn{from{transform:scale(0);}to{transform:scale(1);}}
+.done-h{font-size:14px;color:var(--g3);margin-bottom:8px;}
+.done-sub{font-size:8px;color:var(--dim);margin-bottom:20px;line-height:1.8;}
+.done-info{
+  width:100%;max-width:300px;border:2px solid var(--border);background:var(--bg2);
+  padding:14px;margin-bottom:20px;box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.done-info .row{display:flex;justify-content:space-between;font-size:7px;padding:5px 0;}
+.done-info .row span{color:var(--dim);}
+.done-info .row b{font-size:7px;}
+.done-info .row .pick{padding:1px 6px;font-size:6px;}
+.pick.health{background:var(--g1);color:var(--g3);border:1px solid var(--g3);}
+.pick.joy{background:var(--o1);color:var(--o3);border:1px solid var(--o3);}
+.done-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.chip{font-size:6px;padding:3px 6px;border:1px solid var(--border);background:var(--bg3);color:var(--txt);}
+.done-actions{display:flex;gap:10px;width:100%;max-width:300px;}
+.btn-p{flex:1;padding:12px;border:3px solid;font-size:8px;cursor:pointer;font-family:inherit;transition:transform .08s;}
+.btn-p:active{transform:translate(2px,2px);}
+.btn-p-fill{border-color:var(--warm);background:var(--warm2);color:#1a1208;}
+.btn-p-outline{border-color:var(--border);background:var(--bg2);color:var(--txt);}
+
+/* ============ 记录页 ============ */
+#page-record{padding:0 12px 20px;}
+.meal-selector{display:flex;gap:4px;margin:10px 0 16px;flex-wrap:wrap;}
+.meal-tab{
+  padding:6px 8px;border:2px solid var(--border);background:var(--bg2);
+  font-size:6px;cursor:pointer;font-family:inherit;color:var(--dim);
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.meal-tab.active{border-color:var(--warm);color:var(--warm);background:var(--bg3);}
+.meal-tab:active{transform:translate(1px,1px);}
+
+.record-section{margin-bottom:16px;}
+.record-label{font-size:7px;color:var(--dim);margin-bottom:6px;display:flex;align-items:center;gap:4px;}
+.record-label .req{color:var(--o3);}
+
+/* 决策关联提示 */
+.decision-link{
+  border:2px solid var(--g3);background:var(--g1);padding:10px;
+  margin-bottom:16px;font-size:7px;color:var(--g3);
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.decision-link b{color:var(--warm);font-size:8px;}
+.decision-link .decisions{margin-top:6px;font-size:6px;color:var(--dim);}
+.decision-link .decisions .d-item{padding:2px 0;}
+
+/* 选择健康/快乐 */
+.choice-row{display:flex;gap:8px;}
+.choice-btn{
+  flex:1;padding:10px;border:2px solid var(--border);background:var(--bg2);
+  font-size:7px;cursor:pointer;font-family:inherit;color:var(--dim);
+  text-align:center;box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);transition:transform .08s;
+}
+.choice-btn:active{transform:translate(1px,1px);}
+.choice-btn.sel-h{border-color:var(--g3);color:var(--g3);background:var(--g1);}
+.choice-btn.sel-j{border-color:var(--o3);color:var(--o3);background:var(--o1);}
+
+/* 食物输入 */
+.food-input-area{margin-bottom:8px;}
+.food-input{
+  width:100%;padding:10px;border:2px solid var(--border);background:var(--bg2);
+  color:var(--txt);font-size:8px;font-family:inherit;outline:none;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.food-input:focus{border-color:var(--g3);}
+.food-input::placeholder{color:var(--faint);}
+.food-quick{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.food-quick .qchip{
+  font-size:6px;padding:4px 8px;border:1px solid var(--border);background:var(--bg3);
+  color:var(--dim);cursor:pointer;font-family:inherit;
+}
+.food-quick .qchip:active{transform:translate(1px,1px);}
+.food-added{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;min-height:24px;}
+.food-added .achip{
+  font-size:6px;padding:4px 8px;border:1px solid;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;gap:4px;
+}
+.food-added .achip.h{border-color:var(--g3);color:var(--g3);background:var(--g1);}
+.food-added .achip.j{border-color:var(--o3);color:var(--o3);background:var(--o1);}
+.food-added .achip .x{opacity:.6;}
+
+/* 时间显示 */
+.time-display{
+  border:2px solid var(--border);background:var(--bg2);padding:8px 10px;
+  font-size:7px;color:var(--dim);display:flex;justify-content:space-between;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.time-display b{color:var(--txt);font-size:8px;}
+
+/* 照片 */
+.photo-pick{
+  border:2px dashed var(--border);background:var(--bg2);padding:16px;
+  text-align:center;cursor:pointer;color:var(--dim);
+}
+.photo-pick:active{transform:translate(1px,1px);}
+.photo-pick.has{padding:0;border-style:solid;overflow:hidden;}
+.photo-pick img{width:100%;display:block;}
+.photo-pick .pic{font-size:20px;margin-bottom:6px;}
+.photo-pick .pt{font-size:7px;}
+.photo-pick .ps{font-size:6px;margin-top:2px;}
+
+/* 心情 */
+.mood-row{display:flex;gap:6px;}
+.mood-btn{
+  flex:1;padding:8px 4px;border:2px solid var(--border);background:var(--bg2);
+  font-size:7px;cursor:pointer;font-family:inherit;color:var(--dim);
+  text-align:center;box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);transition:transform .08s;
+}
+.mood-btn:active{transform:translate(1px,1px);}
+.mood-btn .mi{font-size:16px;display:block;margin-bottom:4px;}
+.mood-btn.sel{border-color:var(--warm);color:var(--warm);background:var(--bg3);}
+
+/* 提交 */
+.submit-btn{
+  width:100%;padding:14px;border:3px solid var(--warm);background:var(--warm2);
+  color:#1a1208;font-size:9px;cursor:pointer;font-family:inherit;
+  letter-spacing:1px;box-shadow:inset -3px -3px 0 rgba(0,0,0,.2),inset 3px 3px 0 rgba(255,255,255,.15),4px 4px 0 rgba(0,0,0,.4);
+  transition:transform .08s;margin-top:8px;
+}
+.submit-btn:active{transform:translate(2px,2px);}
+
+/* ============ 食物库 ============ */
+#page-foodlib{padding:0 12px 20px;}
+.fl-tabs{display:flex;gap:6px;margin:10px 0 14px;}
+.fl-tab{
+  flex:1;padding:8px;border:2px solid var(--border);background:var(--bg2);
+  font-size:7px;cursor:pointer;font-family:inherit;color:var(--dim);text-align:center;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.fl-tab.active-h{border-color:var(--g3);color:var(--g3);background:var(--g1);}
+.fl-tab.active-j{border-color:var(--o3);color:var(--o3);background:var(--o1);}
+.fl-add{display:flex;gap:6px;margin-bottom:14px;}
+.fl-input{
+  flex:1;padding:9px;border:2px solid var(--border);background:var(--bg2);
+  color:var(--txt);font-size:8px;font-family:inherit;outline:none;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.fl-input:focus{border-color:var(--g3);}
+.fl-add-btn{
+  padding:9px 14px;border:2px solid var(--warm);background:var(--warm2);
+  color:#1a1208;font-size:7px;cursor:pointer;font-family:inherit;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);white-space:nowrap;
+}
+.fl-add-btn:active{transform:translate(1px,1px);}
+.fl-list{display:flex;flex-direction:column;gap:5px;}
+.fl-item{
+  display:flex;align-items:center;gap:8px;border:2px solid var(--border);background:var(--bg2);
+  padding:8px 10px;box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.fl-item .fi-dot{width:5px;height:5px;flex-shrink:0;}
+.fl-item .fi-name{flex:1;font-size:7px;}
+.fl-item .fi-badge{font-size:5px;padding:2px 5px;border:1px solid;}
+.fl-item .fi-badge.def{border-color:var(--border);color:var(--dim);}
+.fl-item .fi-badge.cus{border-color:var(--g3);color:var(--g3);}
+.fl-item .fi-del{
+  width:24px;height:24px;border:1px solid var(--o3);background:var(--o1);
+  color:var(--o3);font-size:14px;cursor:pointer;font-family:inherit;
+  display:grid;place-items:center;
+}
+.fl-item .fi-del:active{transform:translate(1px,1px);}
+.fl-empty{text-align:center;padding:30px 20px;color:var(--faint);}
+.fl-empty .e{font-size:32px;margin-bottom:8px;}
+.fl-hint{font-size:6px;color:var(--faint);margin-top:12px;text-align:center;}
+
+/* ============ 历史记录 ============ */
+#page-history{padding:0 12px 20px;}
+.hist-date{
+  border:2px solid var(--border);background:var(--bg2);padding:8px 12px;
+  font-size:8px;color:var(--warm);margin:10px 0 8px;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.hist-meal{
+  border:2px solid var(--border);background:var(--bg2);padding:12px;
+  margin-bottom:8px;box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.hist-meal .hm-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.hist-meal .hm-name{font-size:8px;}
+.hist-meal .hm-status{font-size:6px;padding:2px 6px;border:1px solid;}
+.hist-meal .hm-status.done{border-color:var(--g3);color:var(--g3);}
+.hist-meal .hm-status.pending{border-color:var(--o3);color:var(--o3);}
+.hist-meal .hm-status.skip{border-color:var(--border);color:var(--dim);}
+.hist-meal .hm-row{font-size:6px;color:var(--dim);padding:3px 0;line-height:1.6;}
+.hist-meal .hm-row b{color:var(--txt);font-size:7px;}
+.hist-meal .hm-row .pick{font-size:5px;padding:1px 4px;margin-left:4px;}
+.hist-meal .hm-decisions{border:1px solid var(--border);padding:6px;margin-top:6px;background:var(--bg3);}
+.hist-meal .hm-decisions .d-title{font-size:6px;color:var(--dim);margin-bottom:4px;}
+.hist-meal .hm-decisions .d-item{font-size:6px;color:var(--dim);padding:2px 0;display:flex;gap:6px;}
+.hist-meal .hm-decisions .d-item .d-time{color:var(--warm);}
+.hist-meal .hm-consistency{font-size:6px;margin-top:6px;padding:4px 6px;border:1px solid;}
+.hist-meal .hm-consistency.match{border-color:var(--g3);color:var(--g3);background:var(--g1);}
+.hist-meal .hm-consistency.mismatch{border-color:var(--o3);color:var(--o3);background:var(--o1);}
+.hist-empty{text-align:center;padding:40px 20px;color:var(--faint);}
+.hist-empty .e{font-size:32px;margin-bottom:8px;}
+
+/* ============ 饭友圈 ============ */
+#page-friends{padding:0 12px 20px;}
+.fr-tabs{display:flex;gap:4px;margin:8px 0 14px;}
+.fr-tab{
+  padding:6px 10px;border:2px solid var(--border);background:var(--bg2);
+  font-size:6px;cursor:pointer;font-family:inherit;color:var(--dim);
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.fr-tab.active{border-color:var(--warm);color:var(--warm);background:var(--bg3);}
+.fr-sec{font-size:6px;color:var(--dim);margin:6px 0 8px;display:flex;align-items:center;gap:6px;}
+.fr-sec .line{flex:1;height:1px;background:var(--border);}
+.urge-item{
+  display:flex;align-items:center;gap:10px;border:2px solid var(--border);background:var(--bg2);
+  padding:10px;margin-bottom:6px;box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.avatar{width:36px;height:36px;border:2px solid var(--border);display:grid;place-items:center;font-size:18px;flex-shrink:0;}
+.avatar.off{filter:grayscale(.7);opacity:.6;}
+.urge-info{flex:1;min-width:0;}
+.urge-info .nm{font-size:7px;}
+.urge-info .st{font-size:6px;color:var(--dim);margin-top:2px;}
+.urge-btn{
+  padding:6px 10px;border:2px solid var(--o3);background:var(--o1);
+  color:var(--o3);font-size:6px;cursor:pointer;font-family:inherit;white-space:nowrap;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+}
+.urge-btn:active{transform:translate(1px,1px);}
+.urge-btn.done{border-color:var(--border);color:var(--faint);background:var(--bg3);}
+.feed-card{border:2px solid var(--border);background:var(--bg2);padding:12px;margin-bottom:8px;box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);}
+.feed-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.feed-top .nm{font-size:7px;}
+.feed-top .tm{font-size:5px;color:var(--dim);margin-top:1px;}
+.feed-badge{margin-left:auto;font-size:5px;padding:2px 6px;border:1px solid;}
+.feed-badge.health{border-color:var(--g3);color:var(--g3);}
+.feed-badge.joy{border-color:var(--o3);color:var(--o3);}
+.feed-foods{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
+.feed-photo-ph{width:100%;height:60px;display:grid;place-items:center;font-size:20px;background:var(--bg3);border:1px solid var(--border);margin-bottom:8px;}
+.feed-actions{display:flex;gap:8px;border-top:1px solid var(--border);padding-top:8px;}
+.act-btn{display:flex;align-items:center;gap:4px;font-size:6px;color:var(--dim);background:none;border:none;cursor:pointer;font-family:inherit;padding:2px 4px;}
+.act-btn:active{transform:translate(1px,1px);}
+.act-btn.liked{color:var(--o3);}
+.act-btn .ic{font-size:12px;}
+.feed-empty{text-align:center;padding:30px;color:var(--faint);}
+.feed-empty .e{font-size:28px;margin-bottom:8px;}
+
+/* ============ Toast ============ */
+.toast-wrap{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;}
+.toast{
+  border:2px solid var(--warm);background:var(--bg2);color:var(--txt);
+  padding:10px 16px;font-size:7px;box-shadow:inset -2px -2px 0 rgba(0,0,0,.3),4px 4px 0 rgba(0,0,0,.5);
+  animation:toastIn .15s steps(2),toastOut .15s 2s steps(2) forwards;
+  display:flex;align-items:center;gap:6px;
+}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@keyframes toastOut{to{opacity:0;transform:translateY(-6px);}}
+
+.hidden-input{display:none;}
+
+/* 装饰像素点 */
+.pixel-deco{position:fixed;bottom:8px;right:8px;display:grid;grid-template-columns:repeat(3,4px);gap:2px;z-index:9990;opacity:.3;}
+.pixel-deco span{width:4px;height:4px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ===== 首页 ===== -->
+<section class="page active" id="page-home">
+  <div class="home-header">
+    <div class="home-title">█ 好 好 吃 饭 █</div>
+    <div class="home-sub">&gt; EAT WELL EVERY DAY <span class="blink">_</span></div>
+  </div>
+  <div class="status-box" id="statusBox">
+    <div class="phase" id="homePhase">▲ 加载中... ▲</div>
+    <div class="msg" id="homeMsg"></div>
+  </div>
+  <div class="dual-btns">
+    <div class="pbtn pbtn-green" id="btnDecide" onclick="goDecide()">
+      <span class="check">✓</span>
+      <div class="ic">🥗</div>
+      <div class="lbl">[ 决定吃什么 ]</div>
+      <div class="dsc" id="btnDecideDsc">&gt; 选择健康或快乐</div>
+    </div>
+    <div class="pbtn pbtn-orange" id="btnRecord" onclick="goRecord()">
+      <span class="check">✓</span>
+      <div class="ic">📝</div>
+      <div class="lbl">[ 记录已吃 ]</div>
+      <div class="dsc" id="btnRecordDsc">&gt; 先决定才能记录</div>
+    </div>
+  </div>
+  <div class="pbtn pbtn-gray" onclick="goHistory()">
+    <div class="ic" style="font-size:18px;display:inline-block;vertical-align:middle;">📜</div>
+    <div class="lbl" style="display:inline-block;vertical-align:middle;font-size:8px;">[ 我的记录 ]</div>
+    <div class="dsc" style="display:inline-block;vertical-align:middle;font-size:6px;margin-left:6px;">&gt; 查看历史存档</div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="num g" id="statG">0</div><div class="lbl">理性健康</div></div>
+    <div class="stat-box"><div class="num o" id="statO">0</div><div class="lbl">情绪快乐</div></div>
+    <div class="stat-box"><div class="num" id="statTotal">0</div><div class="lbl">今日完成</div></div>
+  </div>
+  <div style="font-size:6px;color:var(--dim);text-align:center;margin-bottom:4px;">今日进度</div>
+  <div class="pixel-bar"><div class="pixel-bar-fill" id="progressFill" style="width:0%"></div></div>
+  <div style="text-align:center;margin-top:16px;">
+    <button class="pbtn pbtn-gray" style="display:inline-block;width:auto;padding:8px 16px;" onclick="goFriends()">
+      <span style="font-size:14px;">👥</span>
+      <span style="font-size:7px;margin-left:6px;">[ 饭友圈 ]</span>
+    </button>
+  </div>
+</section>
+
+<!-- ===== 决策页 ===== -->
+<section class="page" id="page-decide">
+  <div class="topbar">
+    <button class="back" onclick="goHome()">‹</button>
+    <div class="title">决定吃什么<small>CHOOSE YOUR MEAL</small></div>
+    <div class="spacer"></div>
+  </div>
+  <div class="decide-head">
+    <div class="decide-time">🕐 <b id="decideTime">12:00</b> · <span id="decideMeal">午餐</span></div>
+    <div class="decide-h">健康 还是 快乐？</div>
+    <div class="decide-sub">&gt; 没有对错，遵从当下的自己</div>
+  </div>
+  <div class="decide-count" id="decideCountBox" style="display:none;">
+    本餐已决策 <b id="decideCount">0</b> 次 · 可继续修改决定
+  </div>
+  <div class="cards">
+    <div class="pcard pcard-health" onclick="doDecide('health')">
+      <div class="emoji">🥗</div>
+      <div class="tag">RATIONAL</div>
+      <div class="name">理性的健康</div>
+      <div class="foods" id="decideHealthFoods"></div>
+      <button class="cta">&gt; 选这个</button>
+    </div>
+    <div class="pcard pcard-joy" onclick="doDecide('joy')">
+      <div class="emoji">🍔</div>
+      <div class="tag">HAPPY</div>
+      <div class="name">情绪的快乐</div>
+      <div class="foods" id="decideJoyFoods"></div>
+      <button class="cta">&gt; 选这个</button>
+    </div>
+  </div>
+  <div class="foodlib-entry" onclick="goFoodLib()">
+    <div class="ic">📦</div>
+    <div class="txt"><div class="t">我的食物库</div><div class="s">添加常吃食物，推荐更准</div></div>
+    <div class="arrow">›</div>
+  </div>
+</section>
+
+<!-- ===== 决策成功 ===== -->
+<section class="page" id="page-decide-done">
+  <div class="done-icon">✅</div>
+  <div class="done-h">决策已记录！</div>
+  <div class="done-sub" id="decideDoneSub">去好好吃饭吧 🍽️</div>
+  <div class="done-info">
+    <div class="row"><span>用餐时段</span><b id="ddMeal">午餐</b></div>
+    <div class="row"><span>决策时间</span><b id="ddTime">12:00</b></div>
+    <div class="row"><span>本次选择</span><b><span class="pick health" id="ddPick">理性的健康</span></b></div>
+    <div class="row"><span>本餐决策</span><b id="ddCount">第 1 次</b></div>
+    <div class="row" style="display:block;"><span>推荐食物</span><div class="done-chips" id="ddFoods"></div></div>
+  </div>
+  <div class="done-actions">
+    <button class="btn-p btn-p-outline" onclick="goHome()">完 成</button>
+    <button class="btn-p btn-p-fill" onclick="goRecord()">去记录</button>
+  </div>
+</section>
+
+<!-- ===== 记录页 ===== -->
+<section class="page" id="page-record">
+  <div class="topbar">
+    <button class="back" onclick="goHome()">‹</button>
+    <div class="title">记录已吃<small>RECORD YOUR MEAL</small></div>
+    <div class="spacer"></div>
+  </div>
+  <div class="meal-selector" id="mealSelector"></div>
+  <div id="recordDecisionLink"></div>
+  <div class="record-section">
+    <div class="record-label">█ 选择类型</div>
+    <div class="choice-row">
+      <button class="choice-btn" id="rcH" onclick="setRecordChoice('health')">🥗 理性健康</button>
+      <button class="choice-btn" id="rcJ" onclick="setRecordChoice('joy')">🍔 情绪快乐</button>
+    </div>
+  </div>
+  <div class="record-section">
+    <div class="record-label">█ 实际吃了什么 <span class="req">*</span></div>
+    <div class="food-input-area">
+      <input class="food-input" id="foodInput" placeholder="输入食物后回车添加" onkeydown="if(event.key==='Enter')addRecordFood()">
+      <div class="food-quick" id="foodQuick"></div>
+      <div class="food-added" id="foodAdded"></div>
+    </div>
+  </div>
+  <div class="record-section">
+    <div class="record-label">█ 吃完时间</div>
+    <div class="time-display"><span>记录时间</span><b id="recordTime">12:00</b></div>
+  </div>
+  <div class="record-section">
+    <div class="record-label">█ 食物照片（可选）</div>
+    <div class="photo-pick" id="photoPick" onclick="document.getElementById('photoInputR').click()">
+      <div class="pic">📷</div>
+      <div class="pt">拍一张你今天吃到的</div>
+      <div class="ps">可选，记录最真实的这一餐</div>
+    </div>
+    <input type="file" accept="image/*" class="hidden-input" id="photoInputR" onchange="onRecordPhoto(event)">
+  </div>
+  <div class="record-section">
+    <div class="record-label">█ 心情/感受（可选）</div>
+    <div class="mood-row">
+      <button class="mood-btn" data-mood="great" onclick="setMood(this)"><span class="mi">😄</span>舒服满足</button>
+      <button class="mood-btn" data-mood="ok" onclick="setMood(this)"><span class="mi">😐</span>还行吧</button>
+      <button class="mood-btn" data-mood="regret" onclick="setMood(this)"><span class="mi">😅</span>有点后悔</button>
+    </div>
+  </div>
+  <button class="submit-btn" onclick="submitRecord()">&gt; 提交记录 &lt;</button>
+</section>
+
+<!-- ===== 记录成功 ===== -->
+<section class="page" id="page-record-done">
+  <div class="done-icon">✅</div>
+  <div class="done-h">记录完成！</div>
+  <div class="done-sub" id="recordDoneSub">好好吃饭，是最温柔的照顾 🍽️</div>
+  <div class="done-info">
+    <div class="row"><span>用餐时段</span><b id="rdMeal">午餐</b></div>
+    <div class="row"><span>记录时间</span><b id="rdTime">12:00</b></div>
+    <div class="row"><span>本次选择</span><b><span class="pick health" id="rdPick">理性的健康</span></b></div>
+    <div class="row"><span>决策次数</span><b id="rdDecCount">0 次</b></div>
+    <div class="row"><span>心情</span><b id="rdMood">-</b></div>
+    <div class="row" style="display:block;"><span>实际吃了</span><div class="done-chips" id="rdFoods"></div></div>
+  </div>
+  <div class="done-actions">
+    <button class="btn-p btn-p-outline" onclick="goHome()">完 成</button>
+    <button class="btn-p btn-p-fill" onclick="goFriends()">看饭友圈</button>
+  </div>
+</section>
+
+<!-- ===== 食物库 ===== -->
+<section class="page" id="page-foodlib">
+  <div class="topbar">
+    <button class="back" onclick="goBackFromFoodLib()">‹</button>
+    <div class="title">我的食物库<small>FOOD LIBRARY</small></div>
+    <div class="spacer"></div>
+  </div>
+  <div class="fl-tabs">
+    <button class="fl-tab active-h" id="flTabH" onclick="switchFoodLibTab('health',this)">🥗 理性健康</button>
+    <button class="fl-tab" id="flTabJ" onclick="switchFoodLibTab('joy',this)">🍔 情绪快乐</button>
+  </div>
+  <div class="fl-add">
+    <input class="fl-input" id="flInput" placeholder="输入食物名称" onkeydown="if(event.key==='Enter')addFoodFromLib()">
+    <button class="fl-add-btn" onclick="addFoodFromLib()">&gt; 添加</button>
+  </div>
+  <div class="fl-list" id="flList"></div>
+  <div class="fl-hint">默认食物不可删除 · 自定义食物可移除</div>
+</section>
+
+<!-- ===== 历史记录 ===== -->
+<section class="page" id="page-history">
+  <div class="topbar">
+    <button class="back" onclick="goHome()">‹</button>
+    <div class="title">我的记录<small>HISTORY ARCHIVE</small></div>
+    <div class="spacer"></div>
+  </div>
+  <div id="histList"></div>
+</section>
+
+<!-- ===== 饭友圈 ===== -->
+<section class="page" id="page-friends">
+  <div class="topbar">
+    <button class="back" onclick="goHome()">‹</button>
+    <div class="title">饭友圈<small>FRIENDS FEED</small></div>
+    <div class="spacer"></div>
+  </div>
+  <div class="fr-tabs">
+    <button class="fr-tab active" onclick="switchFeed('all',this)">全部</button>
+    <button class="fr-tab" onclick="switchFeed('health',this)">理性派</button>
+    <button class="fr-tab" onclick="switchFeed('joy',this)">快乐派</button>
+  </div>
+  <div id="urgeSection">
+    <div class="fr-sec">还没吃饭的朋友 <span class="line"></span></div>
+    <div id="urgeList"></div>
+  </div>
+  <div class="fr-sec">今日动态 <span class="line"></span></div>
+  <div id="feedList"></div>
+</section>
+
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+<div class="pixel-deco"><span style="background:var(--g3)"></span><span></span><span style="background:var(--o3)"></span><span></span><span style="background:var(--dim)"></span><span></span><span style="background:var(--warm)"></span><span></span><span></span></div>
+
+<script>
+/* ============ 餐次数据 ============ */
+const MEAL_DATA={
+  breakfast:{name:'早餐',emoji:'🌅',start:5*60,end:10*60,
+    health:{foods:['燕麦粥','水煮蛋','全麦面包','温牛奶','蓝莓','蒸玉米'],emoji:'🥣'},
+    joy:{foods:['油条豆浆','煎饼果子','肠粉','小蛋糕','甜甜圈','手抓饼'],emoji:'🍩'}},
+  lunch:{name:'午餐',emoji:'🍱',start:10*60,end:14*60,
+    health:{foods:['鸡胸肉沙拉','杂粮饭','清蒸鱼','西兰花','豆腐汤','紫薯'],emoji:'🥗'},
+    joy:{foods:['芝士汉堡','麻辣烫','炸鸡','珍珠奶茶','烤肉饭','咖喱饭'],emoji:'🍔'}},
+  afternoon:{name:'下午茶',emoji:'☕',start:14*60,end:17*60,
+    health:{foods:['希腊酸奶','混合坚果','苹果','黑咖啡','全麦饼干','小番茄'],emoji:'🍎'},
+    joy:{foods:['珍珠奶茶','提拉米苏','冰淇淋','马卡龙','巧克力','华夫饼'],emoji:'🧋'}},
+  dinner:{name:'晚餐',emoji:'🌙',start:17*60,end:21*60,
+    health:{foods:['清炒时蔬','小米粥','蒸蛋','三文鱼','菌菇汤','糙米饭'],emoji:'🐟'},
+    joy:{foods:['火锅','烤肉','披萨','炸酱面','小龙虾','寿司'],emoji:'🍲'}},
+  lateNight:{name:'夜宵',emoji:'🌃',start:21*60,end:26*60,
+    health:{foods:['温牛奶','小米粥','蒸南瓜','水煮虾','黄瓜','无糖酸奶'],emoji:'🥛'},
+    joy:{foods:['烧烤','泡面','炸鸡','螺蛳粉','串串香','麻辣烫'],emoji:'🍢'}},
+  sleep:{name:'休息',emoji:'😴',start:2*60,end:5*60,
+    health:{foods:['温牛奶','小米粥','香蕉'],emoji:'🥛'},
+    joy:{foods:['泡面','烤串','小零食'],emoji:'🍜'}}
+};
+const MEAL_ORDER=['breakfast','lunch','afternoon','dinner','lateNight'];
+const DECISION_ADVANCE=40; /* 提前40分钟 */
+
+/* ============ 饭友模拟 ============ */
+const FRIENDS=[
+  {id:'f1',name:'小明',avatar:'🧑',color:'#fb923c',feed:[{meal:'breakfast',time:'08:15',choice:'health',foods:['燕麦粥','水煮蛋']},{meal:'lunch',time:'12:15',choice:'health',foods:['鸡胸肉沙拉','杂粮饭']}]},
+  {id:'f2',name:'小红',avatar:'👩',color:'#f87171',feed:[{meal:'lunch',time:'13:02',choice:'joy',foods:['火锅','珍珠奶茶']}],likes:6,xiang:3},
+  {id:'f3',name:'阿杰',avatar:'🧔',color:'#34d399',feed:[],likes:0,xiang:0},
+  {id:'f4',name:'小美',avatar:'👧',color:'#fbbf24',feed:[{meal:'breakfast',time:'07:50',choice:'joy',foods:['煎饼果子','豆浆']},{meal:'lunch',time:'12:40',choice:'health',foods:['清蒸鱼','杂粮饭','菌菇汤']}],likes:4,xiang:2},
+  {id:'f5',name:'大壮',avatar:'👨',color:'#60a5fa',feed:[],likes:0,xiang:0},
+  {id:'f6',name:'甜甜',avatar:'👱‍♀️',color:'#f472b6',feed:[{meal:'afternoon',time:'15:20',choice:'joy',foods:['提拉米苏','珍珠奶茶']}],likes:8,xiang:5},
+  {id:'f7',name:'老王',avatar:'🧓',color:'#22d3ee',feed:[{meal:'lunch',time:'12:00',choice:'health',foods:['豆腐汤','杂粮饭','西兰花']}],likes:2,xiang:1}
+];
+
+/* ============ 状态 ============ */
+let currentMeal=null, currentMealPhase=null, currentMealMins=0;
+let selectedMealForRecord=null;
+let recordChoice=null, recordFoods=[], recordPhoto=null, recordMood=null;
+let foodLibTab='health';
+let feedFilter='all';
+let foodLibReturnPage='decide';
+let urgedSet=new Set(JSON.parse(localStorage.getItem('hhcf_urged')||'[]'));
+
+/* ============ 工具 ============ */
+function $(id){return document.getElementById(id);}
+function nowHHMM(){const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function todayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function pad2(n){return String(n).padStart(2,'0');}
+function getMealState(){
+  const d=new Date();const totalMin=d.getHours()*60+d.getMinutes();
+  for(let k of MEAL_ORDER){
+    const m=MEAL_DATA[k];
+    let s=m.start,e=m.end;
+    if(totalMin>=s&&totalMin<e)return{key:k,name:m.name,phase:'eating',minsLeft:e-totalMin};
+  }
+  for(let k of MEAL_ORDER){
+    const m=MEAL_DATA[k];
+    let ds=m.start-DECISION_ADVANCE;
+    if(ds<0)ds+=24*60;
+    let checkMin=totalMin;
+    if(m.start<5*60)checkMin+=24*60;
+    if(checkMin>=ds&&checkMin<m.start+(m.start<5*60?24*60:0)){
+      let realLeft=m.start-totalMin;
+      if(realLeft<0)realLeft+=24*60;
+      return{key:k,name:m.name,phase:'deciding',minsLeft:realLeft};
+    }
+  }
+  return{key:'sleep',name:'休息',phase:'sleep',minsLeft:0};
+}
+function toast(msg,icon){
+  const w=$('toastWrap');const t=document.createElement('div');t.className='toast';
+  t.innerHTML=(icon?'<span>'+icon+'</span>':'')+'<span>'+msg+'</span>';
+  w.appendChild(t);setTimeout(()=>t.remove(),2400);
+}
+function pickFoods(arr,n){const c=[...arr];const r=[];for(let i=0;i<n&&c.length;i++)r.push(c.splice(Math.floor(Math.random()*c.length),1)[0]);return r;}
+
+/* ============ 食物库 ============ */
+function getCustomFoods(cat){const all=JSON.parse(localStorage.getItem('hhcf_foodlib')||'{}');return all[cat]||[];}
+function saveCustomFoods(cat,arr){const all=JSON.parse(localStorage.getItem('hhcf_foodlib')||'{}');all[cat]=arr;localStorage.setItem('hhcf_foodlib',JSON.stringify(all));}
+function mergeFoods(mealKey,cat){
+  const m=MEAL_DATA[mealKey];const def=m[cat].foods;const cus=getCustomFoods(cat);
+  const set=new Set(def);const merged=[...def];
+  cus.forEach(f=>{if(!set.has(f)){merged.push(f);set.add(f);}});
+  return merged;
+}
+
+/* ============ 决策记录 ============ */
+function getDecisions(date,meal){
+  const all=JSON.parse(localStorage.getItem('hhcf_decisions')||'{}');
+  const d=all[date]||{};return d[meal]||[];
+}
+function saveDecision(meal,choice,foods){
+  const all=JSON.parse(localStorage.getItem('hhcf_decisions')||'{}');
+  if(!all[todayKey()])all[todayKey()]={};
+  if(!all[todayKey()][meal])all[todayKey()][meal]=[];
+  all[todayKey()][meal].push({choice,time:nowHHMM(),foods,ts:Date.now()});
+  localStorage.setItem('hhcf_decisions',JSON.stringify(all));
+}
+
+/* ============ 打卡记录 ============ */
+function getRecords(date){
+  const all=JSON.parse(localStorage.getItem('hhcf_records')||'{}');
+  return all[date]||[];
+}
+function saveRecord(rec){
+  const all=JSON.parse(localStorage.getItem('hhcf_records')||'{}');
+  if(!all[todayKey()])all[todayKey()]=[];
+  /* 同一餐只保留最后一条记录 */
+  all[todayKey()]=all[todayKey()].filter(r=>r.meal!==rec.meal);
+  all[todayKey()].push(rec);
+  const keys=Object.keys(all).sort();
+  while(keys.length>7){delete all[keys.shift()];}
+  localStorage.setItem('hhcf_records',JSON.stringify(all));
+}
+
+/* ============ 首页 ============ */
+function renderHome(){
+  const st=getMealState();
+  currentMeal=st.key;currentMealPhase=st.phase;currentMealMins=st.minsLeft;
+  const m=MEAL_DATA[st.key];
+  /* 状态栏 */
+  if(st.phase==='deciding'){
+    $('homePhase').innerHTML='<span class="arrow">▲</span> 还有 '+st.minsLeft+' 分钟吃'+m.name+' <span class="arrow">▲</span>';
+    $('homeMsg').innerHTML='&gt; 先决定吃什么吧';
+  }else if(st.phase==='eating'){
+    $('homePhase').innerHTML='<span class="arrow">▲</span> '+m.emoji+' '+m.name+'时间 <span class="arrow">▲</span>';
+    const mins=st.minsLeft;const h=Math.floor(mins/60);
+    $('homeMsg').innerHTML='&gt; 剩余 '+h+'小时'+(mins%60)+'分钟';
+  }else{
+    $('homePhase').innerHTML='<span class="arrow">▲</span> 😴 太晚啦，该休息了 <span class="arrow">▲</span>';
+    $('homeMsg').innerHTML='&gt; 明天再好好吃饭吧';
+  }
+  /* 按钮状态 */
+  const decs=getDecisions(todayKey(),st.key);
+  const recs=getRecords(todayKey()).filter(r=>r.meal===st.key);
+  const btnD=$('btnDecide'),btnR=$('btnRecord');
+  btnD.className='pbtn pbtn-green';btnR.className='pbtn pbtn-orange disabled';
+  if(decs.length>0){
+    btnD.classList.add('done');
+    $('btnDecideDsc').innerHTML='&gt; 已决策 '+decs.length+' 次';
+    if(recs.length>0){
+      btnR.classList.remove('disabled');btnR.classList.add('done');
+      $('btnRecordDsc').innerHTML='&gt; 已记录 ✅';
+    }else{
+      btnR.classList.remove('disabled');btnR.classList.add('active');
+      const last=decs[decs.length-1];
+      $('btnRecordDsc').innerHTML='&gt; 决定吃'+(last.choice==='health'?'健康':'快乐');
+    }
+  }else{
+    btnD.classList.add('active');
+    $('btnDecideDsc').innerHTML='&gt; 选择健康或快乐';
+    $('btnRecordDsc').innerHTML='&gt; 先决定才能记录';
+  }
+  /* 统计 */
+  const todayRecs=getRecords(todayKey());
+  const gC=todayRecs.filter(r=>r.choice==='health').length;
+  const oC=todayRecs.filter(r=>r.choice==='joy').length;
+  $('statG').textContent=gC;$('statO').textContent=oC;$('statTotal').textContent=todayRecs.length;
+  /* 进度条 */
+  const mealCount=MEAL_ORDER.filter(k=>{
+    const mk=MEAL_DATA[k];return mk.start>=5*60&&mk.start<26*60;
+  }).length;
+  const pct=Math.min(100,Math.round(todayRecs.length/mealCount*100));
+  $('progressFill').style.width=pct+'%';
+}
+
+/* ============ 页面切换 ============ */
+function show(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$(id).classList.add('active');window.scrollTo(0,0);}
+function goHome(){renderHome();show('page-home');}
+
+/* ============ 决策 ============ */
+function goDecide(){
+  const st=getMealState();const m=MEAL_DATA[st.key];
+  $('decideTime').textContent=nowHHMM();
+  $('decideMeal').textContent=m.name;
+  const hFoods=mergeFoods(st.key,'health');
+  const jFoods=mergeFoods(st.key,'joy');
+  $('decideHealthFoods').innerHTML=pickFoods(hFoods,4).map(f=>'<div class="food-item"><span class="dot"></span>'+f+'</div>').join('');
+  $('decideJoyFoods').innerHTML=pickFoods(jFoods,4).map(f=>'<div class="food-item"><span class="dot"></span>'+f+'</div>').join('');
+  const decs=getDecisions(todayKey(),st.key);
+  if(decs.length>0){
+    $('decideCountBox').style.display='block';
+    $('decideCount').textContent=decs.length;
+  }else{
+    $('decideCountBox').style.display='none';
+  }
+  foodLibReturnPage='decide';
+  show('page-decide');
+}
+function doDecide(choice){
+  const st=getMealState();const m=MEAL_DATA[st.key];
+  const foods=mergeFoods(st.key,choice);
+  const picked=pickFoods(foods,3);
+  saveDecision(st.key,choice,picked);
+  const decs=getDecisions(todayKey(),st.key);
+  $('ddMeal').textContent=m.name;
+  $('ddTime').textContent=nowHHMM();
+  const pe=$('ddPick');
+  pe.textContent=choice==='health'?'理性的健康':'情绪的快乐';
+  pe.className='pick '+(choice==='health'?'health':'joy');
+  $('ddCount').textContent='第 '+decs.length+' 次';
+  $('ddFoods').innerHTML=picked.map(f=>'<span class="chip">'+f+'</span>').join('');
+  $('decideDoneSub').textContent=choice==='health'?'自律的你，身体会感谢的 🌿':'快乐无罪，多巴胺万岁 🎉';
+  show('page-decide-done');
+}
+
+/* ============ 记录 ============ */
+function goRecord(){
+  const st=getMealState();
+  selectedMealForRecord=st.key;
+  recordChoice=null;recordFoods=[];recordPhoto=null;recordMood=null;
+  /* 渲染餐次选择器 */
+  $('mealSelector').innerHTML=MEAL_ORDER.map(k=>{
+    const mk=MEAL_DATA[k];
+    return '<button class="meal-tab'+(k===selectedMealForRecord?' active':'')+'" onclick="selectMealForRecord(\''+k+'\')">'+mk.emoji+' '+mk.name+'</button>';
+  }).join('');
+  updateRecordForm();
+  show('page-record');
+}
+function selectMealForRecord(k){
+  selectedMealForRecord=k;
+  document.querySelectorAll('.meal-tab').forEach((t,i)=>{t.className='meal-tab'+(MEAL_ORDER[i]===k?' active':'');});
+  updateRecordForm();
+}
+function updateRecordForm(){
+  const meal=selectedMealForRecord;
+  const m=MEAL_DATA[meal];
+  $('recordTime').textContent=nowHHMM();
+  /* 决策关联 */
+  const decs=getDecisions(todayKey(),meal);
+  const linkEl=$('recordDecisionLink');
+  if(decs.length>0){
+    const last=decs[decs.length-1];
+    let html='<div class="decision-link"><b>📋 本餐已决策 '+decs.length+' 次</b><br>最终选择：'+(last.choice==='health'?'🥗 理性健康':'🍔 情绪快乐')+'（'+last.time+'）<div class="decisions">';
+    decs.forEach((d,i)=>{html+='<div class="d-item"><span class="d-time">'+d.time+'</span> '+(d.choice==='health'?'🥗':'🍔')+' '+(d.foods.join('、'))+'</div>';});
+    html+='</div></div>';
+    linkEl.innerHTML=html;
+    /* 预填 */
+    setRecordChoice(last.choice,true);
+    recordFoods=[...last.foods];
+    renderFoodAdded();
+  }else{
+    linkEl.innerHTML='<div class="decision-link" style="border-color:var(--border);background:var(--bg2);color:var(--dim);"><b>📋 本餐未决策</b><br>直接填写你实际吃的吧</div>';
+    setRecordChoice(null);
+    recordFoods=[];
+    renderFoodAdded();
+  }
+  /* 快速选择 */
+  const cat=recordChoice||'health';
+  const allFoods=mergeFoods(meal,cat);
+  $('foodQuick').innerHTML=allFoods.slice(0,8).map(f=>'<button class="qchip" onclick="quickAddFood(\''+f.replace(/'/g,"\\'")+'\')">'+f+'</button>').join('');
+}
+function setRecordChoice(c,silent){
+  recordChoice=c;
+  $('rcH').className='choice-btn'+(c==='health'?' sel-h':'');
+  $('rcJ').className='choice-btn'+(c==='joy'?' sel-j':'');
+  if(!silent){
+    const cat=c||'health';
+    const allFoods=mergeFoods(selectedMealForRecord,cat);
+    $('foodQuick').innerHTML=allFoods.slice(0,8).map(f=>'<button class="qchip" onclick="quickAddFood(\''+f.replace(/'/g,"\\'")+'\')">'+f+'</button>').join('');
+  }
+}
+function quickAddFood(f){
+  if(recordFoods.indexOf(f)<0){recordFoods.push(f);renderFoodAdded();}
+}
+function addRecordFood(){
+  const v=$('foodInput').value.trim();
+  if(!v)return;
+  if(recordFoods.indexOf(v)<0){recordFoods.push(v);renderFoodAdded();}
+  $('foodInput').value='';
+}
+function removeRecordFood(i){
+  recordFoods.splice(i,1);renderFoodAdded();
+}
+function renderFoodAdded(){
+  const cat=recordChoice||'health';
+  $('foodAdded').innerHTML=recordFoods.map((f,i)=>'<div class="achip '+cat+'" onclick="removeRecordFood('+i+')">'+f+' <span class="x">✕</span></div>').join('');
+}
+function onRecordPhoto(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    recordPhoto=r.result;
+    const pb=$('photoPick');
+    pb.className='photo-pick has';
+    pb.innerHTML='<img src="'+r.result+'" alt="餐食">';
+  };
+  r.readAsDataURL(f);
+}
+function setMood(btn){
+  document.querySelectorAll('.mood-btn').forEach(b=>b.className='mood-btn');
+  btn.className='mood-btn sel';
+  recordMood=btn.dataset.mood;
+}
+function submitRecord(){
+  if(!recordChoice){toast('请选择类型（健康/快乐）','⚠️');return;}
+  if(recordFoods.length===0){toast('请添加至少一种食物','⚠️');return;}
+  const m=MEAL_DATA[selectedMealForRecord];
+  const decs=getDecisions(todayKey(),selectedMealForRecord);
+  const rec={meal:selectedMealForRecord,time:nowHHMM(),choice:recordChoice,foods:[...recordFoods],photo:recordPhoto,mood:recordMood,decisionCount:decs.length,ts:Date.now()};
+  saveRecord(rec);
+  /* 渲染成功页 */
+  $('rdMeal').textContent=m.name;
+  $('rdTime').textContent=rec.time;
+  const pe=$('rdPick');
+  pe.textContent=recordChoice==='health'?'理性的健康':'情绪的快乐';
+  pe.className='pick '+(recordChoice==='health'?'health':'joy');
+  $('rdDecCount').textContent=decs.length+' 次';
+  const moodMap={great:'😄 舒服满足',ok:'😐 还行吧',regret:'😅 有点后悔'};
+  $('rdMood').textContent=moodMap[recordMood]||'未记录';
+  $('rdFoods').innerHTML=recordFoods.map(f=>'<span class="chip">'+f+'</span>').join('');
+  const consistent=decs.length>0&&decs[decs.length-1].choice===recordChoice;
+  $('recordDoneSub').textContent=decs.length>0?(consistent?'决策和记录一致，说到做到！✨':'和决策不一样也没关系，开心就好 😊'):'已记录，继续好好吃饭！🍽️';
+  show('page-record-done');
+}
+
+/* ============ 食物库 ============ */
+function goFoodLib(){
+  foodLibTab='health';
+  document.querySelectorAll('.fl-tab').forEach(t=>t.className='fl-tab');
+  $('flTabH').classList.add('active-h');
+  renderFoodLib();show('page-foodlib');
+}
+function goBackFromFoodLib(){
+  if(foodLibReturnPage==='decide')goDecide();
+  else goHome();
+}
+function switchFoodLibTab(cat,el){
+  foodLibTab=cat;
+  document.querySelectorAll('.fl-tab').forEach(t=>t.className='fl-tab');
+  el.classList.add(cat==='health'?'active-h':'active-j');
+  renderFoodLib();
+}
+function renderFoodLib(){
+  const cus=getCustomFoods(foodLibTab);
+  const mk=currentMeal||'lunch';
+  const def=MEAL_DATA[mk][foodLibTab].foods;
+  const list=$('flList');let html='';
+  def.forEach(f=>{
+    html+='<div class="fl-item"><span class="fi-dot" style="background:var(--'+(foodLibTab==='health'?'g3':'o3')+')"></span><span class="fi-name">'+f+'</span><span class="fi-badge def">默认</span></div>';
+  });
+  cus.forEach(f=>{
+    html+='<div class="fl-item"><span class="fi-dot" style="background:var(--'+(foodLibTab==='health'?'g3':'o3')+')"></span><span class="fi-name">'+f+'</span><span class="fi-badge cus">自定义</span><button class="fi-del" data-food="'+f.replace(/"/g,'&quot;')+'" onclick="removeFoodFromLib(this)">×</button></div>';
+  });
+  list.innerHTML=html||'<div class="fl-empty"><div class="e">🍽️</div>还没有食物<br>快来添加一个</div>';
+}
+function addFoodFromLib(){
+  const v=$('flInput').value.trim();
+  if(!v){toast('请输入食物名称','📝');return;}
+  const cus=getCustomFoods(foodLibTab);
+  if(cus.indexOf(v)>=0){toast('已在库里了','🙈');return;}
+  cus.push(v);saveCustomFoods(foodLibTab,cus);
+  $('flInput').value='';renderFoodLib();
+  toast('已添加「'+v+'」','✅');
+}
+function removeFoodFromLib(btn){
+  const food=btn.dataset.food;
+  let cus=getCustomFoods(foodLibTab);
+  cus=cus.filter(f=>f!==food);
+  saveCustomFoods(foodLibTab,cus);
+  renderFoodLib();toast('已移除「'+food+'」','🗑️');
+}
+
+/* ============ 历史记录 ============ */
+function goHistory(){
+  const all=JSON.parse(localStorage.getItem('hhcf_records')||'{}');
+  const allDecs=JSON.parse(localStorage.getItem('hhcf_decisions')||'{}');
+  const dates=Object.keys(all).concat(Object.keys(allDecs)).filter((v,i,a)=>a.indexOf(v)===i).sort().reverse();
+  const hl=$('histList');
+  if(dates.length===0){
+    hl.innerHTML='<div class="hist-empty"><div class="e">📜</div>暂无历史记录<br>好好吃饭，从今天开始</div>';
+    show('page-history');return;
+  }
+  hl.innerHTML=dates.map(date=>{
+    const recs=all[date]||[];
+    const decs=allDecs[date]||{};
+    let mealsHtml='';
+    MEAL_ORDER.forEach(k=>{
+      const m=MEAL_DATA[k];
+      const mealDecs=decs[k]||[];
+      const mealRecs=recs.filter(r=>r.meal===k);
+      if(mealDecs.length===0&&mealRecs.length===0)return;
+      let statusCls='skip',statusTxt='未记录';
+      if(mealRecs.length>0){statusCls='done';statusTxt='已记录';}
+      else if(mealDecs.length>0){statusCls='pending';statusTxt='已决策未记录';}
+      let html='<div class="hist-meal"><div class="hm-head"><span class="hm-name">'+m.emoji+' '+m.name+'</span><span class="hm-status '+statusCls+'">'+statusTxt+'</span></div>';
+      if(mealDecs.length>0){
+        html+='<div class="hm-decisions"><div class="d-title">决策记录（'+mealDecs.length+'次）</div>';
+        mealDecs.forEach((d,i)=>{
+          html+='<div class="d-item"><span class="d-time">'+d.time+'</span>'+(d.choice==='health'?'🥗':'🍔')+' '+d.foods.join('、')+'</div>';
+        });
+        html+='</div>';
+      }
+      if(mealRecs.length>0){
+        const r=mealRecs[mealRecs.length-1];
+        html+='<div class="hm-row">实际选择：<b>'+(r.choice==='health'?'🥗 理性健康':'🍔 情绪快乐')+'</b></div>';
+        html+='<div class="hm-row">实际吃了：<b>'+r.foods.join('、')+'</b></div>';
+        html+='<div class="hm-row">记录时间：<b>'+r.time+'</b></div>';
+        if(r.mood){const mm={great:'😄 舒服满足',ok:'😐 还行吧',regret:'😅 有点后悔'};html+='<div class="hm-row">心情：<b>'+(mm[r.mood]||'-')+'</b></div>';}
+        if(mealDecs.length>0){
+          const match=mealDecs[mealDecs.length-1].choice===r.choice;
+          html+='<div class="hm-consistency '+(match?'match':'mismatch')+'">'+(match?'✓ 决策与记录一致':'✗ 决策与记录不一致')+'</div>';
+        }
+      }
+      html+='</div>';
+      mealsHtml+=html;
+    });
+    if(!mealsHtml)return '';
+    return '<div class="hist-date">📅 '+date.replace(/-/g,'.')+'</div>'+mealsHtml;
+  }).filter(h=>h).join('');
+  show('page-history');
+}
+
+/* ============ 饭友圈 ============ */
+function renderFriends(){
+  const urge=FRIENDS.filter(f=>f.feed.length===0);
+  const ul=$('urgeList');
+  if(urge.length===0){$('urgeSection').style.display='none';}
+  else{
+    $('urgeSection').style.display='';
+    ul.innerHTML=urge.map(f=>{
+      const done=urgedSet.has(f.id);
+      return '<div class="urge-item"><div class="avatar off" style="border-color:'+f.color+'">'+f.avatar+'</div><div class="urge-info"><div class="nm">'+f.name+'</div><div class="st">今天还没打卡...</div></div><button class="urge-btn'+(done?' done':'')+'" onclick="urge(\''+f.id+'\')">'+(done?'已催过':'催促')+'</button></div>';
+    }).join('');
+  }
+  let feed=FRIENDS.filter(f=>f.feed.length>0).map(f=>({friend:f,item:f.feed[f.feed.length-1]})).sort((a,b)=>a.item.time<b.item.time?1:-1);
+  if(feedFilter!=='all')feed=feed.filter(x=>x.item.choice===feedFilter);
+  const fl=$('feedList');
+  if(feed.length===0){fl.innerHTML='<div class="feed-empty"><div class="e">🍽️</div>暂无动态</div>';return;}
+  fl.innerHTML=feed.map((x,i)=>{
+    const f=x.friend,it=x.item,md=MEAL_DATA[it.meal];
+    return '<div class="feed-card"><div class="feed-top"><div class="avatar" style="border-color:'+f.color+'">'+f.avatar+'</div><div><div class="nm">'+f.name+'</div><div class="tm">'+md.emoji+' '+md.name+' · '+it.time+'</div></div><div class="feed-badge '+(it.choice==='health'?'health':'joy')+'">'+(it.choice==='health'?'理性':'快乐')+'</div></div><div class="feed-foods">'+it.foods.map(fd=>'<span class="chip">'+fd+'</span>').join('')+'</div><div class="feed-photo-ph">'+(it.choice==='health'?'🥗':'🍔')+'</div><div class="feed-actions"><button class="act-btn" data-i="'+i+'" data-t="like" onclick="onAct(this)"><span class="ic">👍</span>'+(f.likes||0)+'</button><button class="act-btn" data-i="'+i+'" data-t="xiang" onclick="onAct(this)"><span class="ic">😋</span>'+(f.xiang||0)+'</button><button class="act-btn" onclick="toast(\'已给 '+f.name+' 留言\',\'💬\')"><span class="ic">💬</span>留言</button></div></div>';
+  }).join('');
+}
+function onAct(btn){
+  const i=+btn.dataset.i;const t=btn.dataset.t;
+  const visible=FRIENDS.filter(f=>f.feed.length>0).map(f=>({friend:f,item:f.feed[f.feed.length-1]})).sort((a,b)=>a.item.time<b.item.time?1:-1).filter(x=>feedFilter==='all'||x.item.choice===feedFilter);
+  const x=visible[i];if(!x)return;
+  if(t==='like'){x.friend.likes=(x.friend.likes||0)+1;btn.classList.add('liked');toast('给 '+x.friend.name+' 点了赞','👍');}
+  else{x.friend.xiang=(x.friend.xiang||0)+1;toast('觉得 '+x.friend.name+' 吃得真香','😋');}
+  renderFriends();
+}
+function urge(id){
+  if(urgedSet.has(id)){toast('已经催过啦','🙈');return;}
+  urgedSet.add(id);localStorage.setItem('hhcf_urged',JSON.stringify([...urgedSet]));
+  const f=FRIENDS.find(x=>x.id===id);toast('已提醒 '+f.name+' 好好吃饭','🔔');renderFriends();
+}
+function switchFeed(f,el){feedFilter=f;document.querySelectorAll('.fr-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderFriends();}
+function goFriends(){renderFriends();show('page-friends');}
+
+/* ============ 启动 ============ */
+renderHome();
+setInterval(()=>{if($('page-home').classList.contains('active')){const st=getMealState();if(st.key!==currentMeal||st.phase!==currentMealPhase)renderHome();}},30000);
+
+/* PWA Service Worker */
+if('serviceWorker'in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
