@@ -17,9 +17,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -111,6 +108,9 @@ jobs:
           '
 
       - name: Build TWA APK
+        env:
+          ANDROID_HOME: /home/runner/.bubblewrap/android_sdk
+          ANDROID_SDK_ROOT: /home/runner/.bubblewrap/android_sdk
         run: |
           expect -c '
           set timeout 1200
