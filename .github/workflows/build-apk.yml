@@ -80,6 +80,9 @@ jobs:
           echo "=== TWA Manifest created ==="
           cat twa-manifest.json
 
+      - name: Install expect
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq expect
+
       - name: Init TWA project
         run: |
           expect << 'EXPECT_EOF'
