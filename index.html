@@ -30,13 +30,17 @@
   /* 状态 */
   --done:#64748b;
 }
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overflow-x:hidden;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+html,body{height:100%;overflow-x:hidden;overscroll-behavior-y:none;-webkit-overflow-scrolling:touch;}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
   background:radial-gradient(120% 80% at 50% 0%,#232a55 0%,var(--bg-1) 55%,#0f1220 100%);
   color:var(--txt);
   min-height:100vh;
+  min-height:100dvh;
+  padding-left:env(safe-area-inset-left);
+  padding-right:env(safe-area-inset-right);
   -webkit-font-smoothing:antialiased;
 }
 body::before{
@@ -46,10 +50,10 @@ body::before{
     radial-gradient(45% 35% at 88% 18%,rgba(251,146,60,.08),transparent 70%),
     radial-gradient(60% 50% at 50% 110%,rgba(251,191,36,.05),transparent 70%);
 }
-.app{position:relative;z-index:1;max-width:480px;margin:0 auto;min-height:100vh;}
+.app{position:relative;z-index:1;width:100%;max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;}
 
 /* ===== 页面切换 ===== */
-.page{display:none;min-height:100vh;flex-direction:column;animation:fadeUp .45s cubic-bezier(.22,.61,.36,1);}
+.page{display:none;min-height:100vh;min-height:100dvh;flex-direction:column;animation:fadeUp .45s cubic-bezier(.22,.61,.36,1);}
 .page.active{display:flex;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
 
@@ -69,7 +73,7 @@ body::before{
 .topbar .spacer{width:38px;}
 
 /* ===== 首页 ===== */
-#page-home{justify-content:center;align-items:center;text-align:center;padding:24px;padding-top:calc(24px + env(safe-area-inset-top));padding-bottom:calc(24px + env(safe-area-inset-bottom));}
+#page-home{justify-content:center;justify-content:safe center;align-items:center;text-align:center;padding:24px;padding-top:calc(24px + env(safe-area-inset-top));padding-bottom:calc(24px + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .brand{font-size:13px;letter-spacing:6px;color:var(--txt-dim);margin-bottom:6px;font-weight:500;}
 .brand b{color:var(--warm);}
 .greet{font-size:15px;color:var(--txt-dim);margin-bottom:30px;}
@@ -223,7 +227,7 @@ body::before{
 .foodlib-entry .arrow{color:var(--txt-faint);font-size:18px;}
 
 /* ===== 决策成功 / 记录成功 ===== */
-#page-decide-done,#page-record-done{justify-content:center;align-items:center;text-align:center;padding:30px;padding-top:calc(30px + env(safe-area-inset-top));padding-bottom:calc(30px + env(safe-area-inset-bottom));}
+#page-decide-done,#page-record-done{justify-content:center;justify-content:safe center;align-items:center;text-align:center;padding:30px;padding-top:calc(30px + env(safe-area-inset-top));padding-bottom:calc(30px + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .done-icon{
   width:92px;height:92px;border-radius:50%;display:grid;place-items:center;margin-bottom:24px;
   background:linear-gradient(135deg,var(--g2),var(--g1));
@@ -501,7 +505,7 @@ body::before{
   .card .emoji{font-size:52px;}
 }
 @media(min-width:769px){
-  .app{max-width:480px;border-left:1px solid var(--line);border-right:1px solid var(--line);min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,.5);}
+  .app{max-width:480px;border-left:1px solid var(--line);border-right:1px solid var(--line);min-height:100vh;min-height:100dvh;box-shadow:0 0 40px rgba(0,0,0,.5);}
 }
 @media(orientation:landscape) and (max-height:480px){
   #page-home{padding:14px 20px;}
