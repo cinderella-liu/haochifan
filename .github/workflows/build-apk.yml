@@ -48,6 +48,16 @@ jobs:
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           REPO="${{ github.event.repository.name }}"
           PAGES_URL="https://${OWNER}.github.io/${REPO}"
+          RAW_URL="https://raw.githubusercontent.com/${OWNER}/${REPO}/main"
+
+          echo "PAGES_URL=${PAGES_URL}"
+          echo "RAW_URL=${RAW_URL}"
+
+          # Verify PWA manifest is accessible
+          echo "=== Checking PWA manifest ==="
+          curl -sI "${PAGES_URL}/manifest.json" | head -5
+          echo "=== Checking raw manifest ==="
+          curl -sI "${RAW_URL}/manifest.json" | head -5
 
           cat > twa-manifest.json <<MANIFEST
           {
@@ -60,18 +70,19 @@ jobs:
             "backgroundColor": "#161929",
             "enableNotifications": false,
             "startUrl": "/${REPO}/",
-            "iconUrl": "${PAGES_URL}/icon-512.png",
-            "maskableIconUrl": "${PAGES_URL}/icon-512.png",
+            "iconUrl": "${RAW_URL}/icon-512.png",
+            "maskableIconUrl": "${RAW_URL}/icon-512.png",
             "splashScreenFadeOutDuration": 300,
             "signingKey": {
               "path": "./keystore/android.jks",
-              "alias": "android"
+              "alias": "android",
+              "password": "android"
             },
             "appVersionName": "1.0.0",
             "appVersionCode": 1,
             "shortcuts": [],
             "generatorApp": "bubblewrap-cli",
-            "webManifestUrl": "${PAGES_URL}/manifest.json",
+            "webManifestUrl": "${RAW_URL}/manifest.json",
             "alphaDependencies": {"enabled": false},
             "enableSiteSettingsShortcut": false,
             "isChromeOSOnly": false,
@@ -80,7 +91,7 @@ jobs:
             "minSdkVersion": 21
           }
           MANIFEST
-          echo "=== TWA Manifest created ==="
+          echo "=== TWA Manifest ==="
           cat twa-manifest.json
 
       - name: Init TWA project
@@ -92,7 +103,8 @@ jobs:
           expect {
               -re {\(Y/n\)} { send "y\r"; exp_continue }
               -re {\(y/n\)} { send "y\r"; exp_continue }
-              -re "(?i)password" { send "android\r"; exp_continue }
+              -re {\(y/N\)} { send "y\r"; exp_continue }
+              -re {\(Y/N\)} { send "y\r"; exp_continue }
               -re "(?i)confirm" { send "y\r"; exp_continue }
               eof
           }
@@ -101,15 +113,17 @@ jobs:
       - name: Build TWA APK
         run: |
           expect -c '
-          set timeout 900
+          set timeout 1200
           log_user 1
           spawn bubblewrap build
           expect {
               -re {\(Y/n\)} { send "y\r"; exp_continue }
               -re {\(y/n\)} { send "y\r"; exp_continue }
-              -re "(?i)keystore password" { send "android\r"; exp_continue }
-              -re "(?i)key password" { send "android\r"; exp_continue }
-              -re "(?i)password" { send "android\r"; exp_continue }
+              -re {\(y/N\)} { send "y\r"; exp_continue }
+              -re {\(Y/N\)} { send "y\r"; exp_continue }
+              -re "Accept\\?" { send "y\r"; exp_continue }
+              -re "(?i)Key Store:" { send "android\r"; exp_continue }
+              -re "(?i)Key:" { send "android\r"; exp_continue }
               -re "(?i)confirm" { send "y\r"; exp_continue }
               eof
           }
