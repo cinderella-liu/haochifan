@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <meta name="theme-color" content="#0f1923">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -69,7 +69,7 @@ body::before{
 .topbar .spacer{width:32px;}
 
 /* ============ 首页 ============ */
-#page-home{padding:16px;}
+#page-home{padding:16px;padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:calc(16px + env(safe-area-inset-bottom));}
 .home-header{text-align:center;padding:10px 0 20px;}
 .home-title{font-size:14px;color:var(--warm);letter-spacing:3px;text-shadow:2px 2px 0 #8b6914;margin-bottom:6px;}
 .home-sub{font-size:7px;color:var(--dim);}
@@ -135,7 +135,7 @@ body::before{
 .pixel-bar-fill{height:100%;background:repeating-linear-gradient(90deg,var(--g3),var(--g3) 4px,var(--g2) 4px,var(--g2) 8px);transition:width .3s steps(8);}
 
 /* ============ 决策页 ============ */
-#page-decide{padding:0 12px 20px;}
+#page-decide{padding:0 12px calc(20px + env(safe-area-inset-bottom));}
 .decide-head{text-align:center;padding:12px 0 16px;}
 .decide-time{
   display:inline-block;border:2px solid var(--border);background:var(--bg2);
@@ -192,7 +192,7 @@ body::before{
 .foodlib-entry .arrow{color:var(--dim);font-size:12px;}
 
 /* ============ 决策成功 ============ */
-#page-decide-done{justify-content:center;align-items:center;text-align:center;padding:30px;}
+#page-decide-done,#page-record-done{justify-content:center;align-items:center;text-align:center;padding:30px;padding-top:calc(30px + env(safe-area-inset-top));padding-bottom:calc(30px + env(safe-area-inset-bottom));}
 .done-icon{font-size:48px;margin-bottom:20px;animation:popIn .2s steps(3);}
 @keyframes popIn{from{transform:scale(0);}to{transform:scale(1);}}
 .done-h{font-size:14px;color:var(--g3);margin-bottom:8px;}
@@ -200,23 +200,24 @@ body::before{
 .done-info{
   width:100%;max-width:300px;border:2px solid var(--border);background:var(--bg2);
   padding:14px;margin-bottom:20px;box-shadow:inset -2px -2px 0 rgba(0,0,0,.2);
+  box-sizing:border-box;
 }
-.done-info .row{display:flex;justify-content:space-between;font-size:7px;padding:5px 0;}
+.done-info .row{display:flex;justify-content:space-between;font-size:7px;padding:5px 0;gap:8px;flex-wrap:wrap;}
 .done-info .row span{color:var(--dim);}
 .done-info .row b{font-size:7px;}
 .done-info .row .pick{padding:1px 6px;font-size:6px;}
 .pick.health{background:var(--g1);color:var(--g3);border:1px solid var(--g3);}
 .pick.joy{background:var(--o1);color:var(--o3);border:1px solid var(--o3);}
 .done-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
-.chip{font-size:6px;padding:3px 6px;border:1px solid var(--border);background:var(--bg3);color:var(--txt);}
-.done-actions{display:flex;gap:10px;width:100%;max-width:300px;}
+.chip{font-size:6px;padding:3px 6px;border:1px solid var(--border);background:var(--bg3);color:var(--txt);word-break:break-all;max-width:100%;}
+.done-actions{display:flex;gap:10px;width:100%;max-width:300px;box-sizing:border-box;}
 .btn-p{flex:1;padding:12px;border:3px solid;font-size:8px;cursor:pointer;font-family:inherit;transition:transform .08s;}
 .btn-p:active{transform:translate(2px,2px);}
 .btn-p-fill{border-color:var(--warm);background:var(--warm2);color:#1a1208;}
 .btn-p-outline{border-color:var(--border);background:var(--bg2);color:var(--txt);}
 
 /* ============ 记录页 ============ */
-#page-record{padding:0 12px 20px;}
+#page-record{padding:0 12px calc(20px + env(safe-area-inset-bottom));}
 .meal-selector{display:flex;gap:4px;margin:10px 0 16px;flex-wrap:wrap;}
 .meal-tab{
   padding:6px 8px;border:2px solid var(--border);background:var(--bg2);
@@ -316,7 +317,7 @@ body::before{
 .submit-btn:active{transform:translate(2px,2px);}
 
 /* ============ 食物库 ============ */
-#page-foodlib{padding:0 12px 20px;}
+#page-foodlib{padding:0 12px calc(20px + env(safe-area-inset-bottom));}
 .fl-tabs{display:flex;gap:6px;margin:10px 0 14px;}
 .fl-tab{
   flex:1;padding:8px;border:2px solid var(--border);background:var(--bg2);
@@ -359,7 +360,7 @@ body::before{
 .fl-hint{font-size:6px;color:var(--faint);margin-top:12px;text-align:center;}
 
 /* ============ 历史记录 ============ */
-#page-history{padding:0 12px 20px;}
+#page-history{padding:0 12px calc(20px + env(safe-area-inset-bottom));}
 .hist-date{
   border:2px solid var(--border);background:var(--bg2);padding:8px 12px;
   font-size:8px;color:var(--warm);margin:10px 0 8px;
@@ -389,7 +390,7 @@ body::before{
 .hist-empty .e{font-size:32px;margin-bottom:8px;}
 
 /* ============ 饭友圈 ============ */
-#page-friends{padding:0 12px 20px;}
+#page-friends{padding:0 12px calc(20px + env(safe-area-inset-bottom));}
 .fr-tabs{display:flex;gap:4px;margin:8px 0 14px;}
 .fr-tab{
   padding:6px 10px;border:2px solid var(--border);background:var(--bg2);
@@ -448,6 +449,162 @@ body::before{
 /* 装饰像素点 */
 .pixel-deco{position:fixed;bottom:8px;right:8px;display:grid;grid-template-columns:repeat(3,4px);gap:2px;z-index:9990;opacity:.3;}
 .pixel-deco span{width:4px;height:4px;}
+
+/* ============ 响应式适配 ============ */
+
+/* —— 超小屏 (<360px)：卡片纵向堆叠，字号缩小 —— */
+@media(max-width:359px){
+  body{font-size:10px;}
+  .app{max-width:100%;}
+  .home-title{font-size:12px;letter-spacing:2px;}
+  .home-sub{font-size:6px;}
+  .dual-btns{flex-direction:column;gap:8px;}
+  .pbtn{padding:14px 8px;}
+  .pbtn .ic{font-size:24px;}
+  .pbtn .lbl{font-size:8px;}
+  .pbtn .dsc{font-size:5px;}
+  .cards{flex-direction:column;gap:8px;}
+  .pcard{padding:12px 8px;}
+  .pcard .emoji{font-size:26px;}
+  .pcard .name{font-size:9px;}
+  .pcard .food-item{font-size:6px;padding:4px 5px;}
+  .stats-row{gap:4px;}
+  .stat-box{padding:8px 4px;}
+  .stat-box .num{font-size:14px;}
+  .stat-box .lbl{font-size:5px;}
+  .status-box .phase{font-size:7px;}
+  .status-box .msg{font-size:6px;}
+  .topbar .title{font-size:8px;}
+  .topbar .title small{font-size:5px;}
+  .topbar .back{width:28px;height:28px;font-size:14px;}
+  .topbar .spacer{width:28px;}
+  .topbar{padding:max(8px,env(safe-area-inset-top)) 8px 6px;}
+  #page-home{padding:12px 10px;padding-top:calc(12px + env(safe-area-inset-top));padding-bottom:calc(12px + env(safe-area-inset-bottom));}
+  #page-decide,#page-record,#page-foodlib,#page-history,#page-friends{padding:0 10px calc(16px + env(safe-area-inset-bottom));}
+  .meal-selector{gap:3px;}
+  .meal-tab{padding:5px 6px;font-size:5px;}
+  .choice-btn{font-size:6px;padding:8px 6px;}
+  .mood-btn{font-size:6px;padding:6px 2px;}
+  .mood-btn .mi{font-size:14px;}
+  .submit-btn{font-size:8px;padding:12px;}
+  .food-input{font-size:7px;padding:8px;}
+  .fl-input{font-size:7px;padding:8px;}
+  .fl-add-btn{font-size:6px;padding:8px 10px;}
+  .toast{font-size:6px;padding:8px 12px;}
+  .feed-card{padding:10px;}
+  .urge-item{padding:8px;gap:8px;}
+  .avatar{width:32px;height:32px;font-size:16px;}
+}
+
+/* —— 标准手机 (360-480px)：默认样式已适配 —— */
+
+/* —— 大屏手机 (481-768px)：适当放大 —— */
+@media(min-width:481px) and (max-width:768px){
+  .app{max-width:520px;}
+  body{font-size:13px;}
+  .home-title{font-size:16px;letter-spacing:4px;}
+  .home-sub{font-size:8px;}
+  .pbtn{padding:24px 14px;}
+  .pbtn .ic{font-size:32px;}
+  .pbtn .lbl{font-size:10px;}
+  .pcard{padding:20px 14px;}
+  .pcard .emoji{font-size:38px;}
+  .pcard .name{font-size:11px;}
+  .pcard .food-item{font-size:8px;padding:6px 8px;}
+  .stat-box .num{font-size:20px;}
+  .topbar .title{font-size:11px;}
+  .topbar .title small{font-size:8px;}
+  .topbar .back{width:36px;height:36px;font-size:18px;}
+  .topbar .spacer{width:36px;}
+}
+
+/* —— 平板/桌面 (>768px)：居中卡片，限制最大宽度 —— */
+@media(min-width:769px){
+  .app{max-width:480px;border-left:2px solid var(--border2);border-right:2px solid var(--border2);min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,.5);}
+  body{font-size:13px;}
+}
+
+/* —— 横屏适配 —— */
+@media(orientation:landscape) and (max-height:480px){
+  #page-home{padding:10px 16px;}
+  .home-header{padding:4px 0 10px;}
+  .home-title{font-size:12px;margin-bottom:2px;}
+  .home-sub{font-size:6px;}
+  .status-box{padding:8px;margin-bottom:10px;}
+  .status-box .phase{font-size:7px;margin-bottom:3px;}
+  .dual-btns{margin-bottom:8px;}
+  .pbtn{padding:12px 8px;}
+  .pbtn .ic{font-size:22px;margin-bottom:4px;}
+  .pbtn .lbl{font-size:8px;margin-bottom:2px;}
+  .stats-row{margin-bottom:8px;}
+  .stat-box{padding:6px 4px;}
+  .pixel-bar{margin:4px 0;}
+  #page-decide-done,#page-record-done{justify-content:flex-start;padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(16px,env(safe-area-inset-bottom));}
+  .done-icon{font-size:36px;margin-bottom:10px;}
+  .done-h{font-size:12px;margin-bottom:4px;}
+  .done-sub{font-size:7px;margin-bottom:12px;}
+  .done-info{padding:10px;margin-bottom:12px;}
+  .done-actions{margin-top:4px;}
+}
+
+/* —— 高分屏 DPR适配 —— */
+@media(-webkit-min-device-pixel-ratio:2),(min-resolution:2dppx){
+  .pbtn,.pcard{box-shadow:inset -3px -3px 0 rgba(0,0,0,.25),inset 3px 3px 0 rgba(255,255,255,.06),2px 2px 0 rgba(0,0,0,.4);}
+}
+
+/* —— 暗色模式优先（已默认暗色，此为防止系统反转） —— */
+@media(prefers-color-scheme:light){
+  /* 保持暗色主题不变，用户明确选择 */
+}
+
+/* —— 减少动画（尊重无障碍偏好） —— */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:0.01ms!important;
+  }
+  .pbtn-green.active,.pbtn-orange.active{animation:none;}
+  .blink{animation:none;}
+}
+
+/* —— 触摸目标最小尺寸 —— */
+.meal-tab,.choice-btn,.mood-btn,.fl-tab,.fr-tab,.qchip,.act-btn,.urge-btn{
+  min-height:36px;
+}
+.pbtn,.submit-btn,.btn-p{
+  min-height:44px;
+}
+.topbar .back,.fi-del{
+  min-width:36px;min-height:36px;
+}
+
+/* —— 安全区域底部留白 —— */
+.page{padding-bottom:calc(16px + env(safe-area-inset-bottom));}
+#page-home{padding-bottom:calc(16px + env(safe-area-inset-bottom));}
+
+/* —— 文字溢出处理 —— */
+.topbar .title,.urge-info .nm,.feed-top .nm,.fl-item .fi-name,.hm-name{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.urge-info,.feed-top > div:not(.avatar):not(.feed-badge){
+  min-width:0;
+}
+
+/* —— 输入框触摸优化 —— */
+.food-input,.fl-input{
+  -webkit-appearance:none;appearance:none;
+  border-radius:0;font-size:max(8px,16px); /* 防止iOS自动放大 */
+}
+@media(-webkit-min-device-pixel-ratio:1){
+  .food-input,.fl-input{font-size:8px;}
+}
+
+/* —— 图片响应式 —— */
+.photo-pick img,.feed-photo-ph{
+  max-width:100%;height:auto;
+}
+.feed-photo-ph{height:auto;min-height:60px;aspect-ratio:16/9;}
 </style>
 </head>
 <body>
