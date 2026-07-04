@@ -80,18 +80,32 @@ jobs:
           echo "=== TWA Manifest created ==="
           cat twa-manifest.json
 
+      - name: Init TWA project
+        run: |
+          expect << 'EXPECT_EOF'
+          set timeout 300
+          log_user 1
+          spawn bubblewrap init --manifest twa-manifest.json
+          expect {
+              -re "(?i)install the JDK" { send "N\r"; exp_continue }
+              -re "(?i)\\(y/n\\)" { send "y\r"; exp_continue }
+              -re "(?i)confirm" { send "y\r"; exp_continue }
+              eof
+          }
+          EXPECT_EOF
+
       - name: Build TWA APK
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq expect
           expect << 'EXPECT_EOF'
           set timeout 600
           log_user 1
-          spawn bubblewrap build --manifest twa-manifest.json
+          spawn bubblewrap build
           expect {
+              -re "(?i)install the JDK" { send "N\r"; exp_continue }
               -re "(?i)keystore password" { send "android\r"; exp_continue }
               -re "(?i)key password" { send "android\r"; exp_continue }
               -re "(?i)password" { send "android\r"; exp_continue }
-              -re "\\(y/n\\)" { send "y\r"; exp_continue }
+              -re "(?i)\\(y/n\\)" { send "y\r"; exp_continue }
               -re "(?i)confirm" { send "y\r"; exp_continue }
               eof
           }
